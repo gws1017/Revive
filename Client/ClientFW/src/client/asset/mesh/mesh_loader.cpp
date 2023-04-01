@@ -304,7 +304,6 @@ namespace client_fw
 		SPtr<Skeleton> skeleton = CreateSPtr<Skeleton>();
 		skeleton->SetBoneName("Root");
 		
-		//정보를 모으는 벡터들은 재귀함수 바깥쪽에 있어야 한다
 		std::vector<MeshData> mesh_data;
 		InitializeMeshData(mesh_data);
 
@@ -484,13 +483,8 @@ namespace client_fw
 		{
 			if (prefix.compare("<Transform>:") == 0)
 			{
-				//rev_file.read((char*)&temp_mat4, sizeof(Mat4));
 				fread(&temp_mat4, sizeof(Mat4), 1, rev_file);
 				skeleton->SetToParent(temp_mat4);
-				//fread(&temp_mat4, sizeof(Mat4), 1, pInFile);
-				/*rev_file.read((char*)&skeleton->m_scale, sizeof(Vec3));
-				rev_file.read((char*)&skeleton->m_rotation, sizeof(Vec3));
-				rev_file.read((char*)&skeleton->m_translation, sizeof(Vec3));*/
 				fread(&skeleton->m_scale, sizeof(Vec3), 1, rev_file);
 				fread(&skeleton->m_rotation, sizeof(Vec3), 1, rev_file);
 				fread(&skeleton->m_translation, sizeof(Vec3), 1, rev_file);

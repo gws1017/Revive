@@ -39,8 +39,6 @@ namespace client_fw
         if(m_ready_anim_seq != nullptr)
         {
             m_anim_seq = m_ready_anim_seq;
-            //LOG_INFO(m_anim_seq->GetName());
-            //LOG_TRACE(m_animation_name);
             m_anim_seq->GetDefaultTime(m_start_time, m_end_time);
             m_ready_anim_seq = nullptr;
             m_animation_name = m_ready_animation_name;
@@ -65,22 +63,18 @@ namespace client_fw
             {
                 time_pos += delta_time * m_animation_speed;
                 m_time_pos = time_pos;
-                //if (m_time_pos >= m_end_time) m_owner.lock()->SetIsPlaying(false);
             }
 
-            //LOG_INFO(" {0} , {1} {2} {3}", m_prev_time_index, m_time_pos,time_pos, m_end_time);
             m_anim_seq->AnimToPlay(m_prev_time_index , time_pos);
             for (const auto& [name, data] : m_notify_map)
             {
                 if (m_animation_name == data.animation_name)
                 {
-                    //애니메이션 이름을 확인해주지않으면 아무 애니메이션이나 함수가 호출된다.
                     for (int i = prev_index; i <= m_prev_time_index; ++i)
                     {
                         if (i == data.frame_index)
                         {
                             data.notify_function();
-                            //LOG_WARN(m_animation_name + " " + name + " {0}", i);
                         }
                     }
                 }
@@ -91,7 +85,7 @@ namespace client_fw
 				time_pos = m_start_time;
 				m_prev_time_index = 0;
 			}
-			m_time_pos = time_pos;//애니메이션 콜백함수 사용시 쓸수도잇음,저장
+			m_time_pos = time_pos;
 
             m_is_update_animation = false;
         }
@@ -115,7 +109,6 @@ namespace client_fw
             {
                 auto cache_skeleton = skeleton->FindBone(name);
                 m_cahce_skeleton.emplace_back(cache_skeleton);
-                //소켓 이름별 인덱싱작업은 처음 한번만 해주면 된다.
                 m_bone_socket_info.insert({ cache_skeleton->GetBoneName(),index });
                 index++;
             }
@@ -151,7 +144,7 @@ namespace client_fw
     {
         for (UINT index = 0; index < m_cahce_skeleton.size(); ++index)
         {
-            Mat4 final_transform = m_bone_offset[index] * m_cahce_skeleton[index].lock()->GetWorld();
+            Mat4 final_transform =  m_bone_offset[index] * m_cahce_skeleton[index].lock()->GetWorld();
             final_transform.Transpose();
             m_bone_transform_resource[index] = final_transform;
         }

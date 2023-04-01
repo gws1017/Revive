@@ -94,6 +94,10 @@ namespace client_fw
 
 		Mat4 transform = S * R * T;
 
+		temp_bone->m_scale = lerp_scale;
+		temp_bone->m_rotation = lerp_rotate;
+		temp_bone->m_translation = lerp_trans;
+
 		temp_bone->SetToParent(transform);
 	}
 	
