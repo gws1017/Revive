@@ -66,19 +66,18 @@ namespace client_fw
             }
 
             m_anim_seq->AnimToPlay(m_prev_time_index , time_pos);
-            for (const auto& [name, data] : m_notify_map)
-            {
-                if (m_animation_name == data.animation_name)
+
+            auto it = m_notify_map.find(m_animation_name);
+            if (it != m_notify_map.end()) {
+                for (int i = prev_index; i <= m_prev_time_index; ++i)
                 {
-                    for (int i = prev_index; i <= m_prev_time_index; ++i)
+                    if (i == it->second.frame_index)
                     {
-                        if (i == data.frame_index)
-                        {
-                            data.notify_function();
-                        }
+                        it->second.notify_function();
                     }
                 }
             }
+            
 
             if (time_pos >= m_end_time)
 			{
