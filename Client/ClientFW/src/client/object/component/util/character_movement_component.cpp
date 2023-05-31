@@ -48,6 +48,7 @@ namespace client_fw
 				Quaternion rotation = owner->GetRotation() * quat::CreateQuaternionFromNormal(axis, -radian);
 				//owner->SetRotation(rotation);
 
+				//한프레임에 얼마나 보간할건지 계산하는부분
 				float t = m_rotating_speed / abs(radian) * delta_time;
 				t = std::clamp(t, 0.0f, 1.0f);
 

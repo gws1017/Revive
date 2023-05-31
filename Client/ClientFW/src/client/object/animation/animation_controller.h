@@ -81,6 +81,6 @@ namespace client_fw
 		//해당 클래스를 플레이어에 멤버로 넣고, 그 객체를 통해서
 		//Notify를 등록 & 관리하는게 맞지만 
 		//시간관계상 animation controller에 기능을 넣었다.
-		std::map<std::string, NotifyData> m_notify_map;
+		std::unordered_map<std::string, NotifyData> m_notify_map;
 	};
 }
