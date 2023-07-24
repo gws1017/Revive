@@ -57,6 +57,8 @@ namespace revive
 		m_character_movement_component->SetMaxSpeed(100.f);
 		m_character_movement_component->UseOrientRotationToMovement(true);
 
+		m_skeletal_mesh_component->SetAnimation("Idle");
+
 		Equip();
 
 		m_player_fsm->Initialize(SharedFromThis());
@@ -400,12 +402,14 @@ namespace revive
 	{
 		bool ret = DefaultPlayer::Initialize();
 
+
 		if (m_is_develop_mode)
 		{
 			ret = m_skeletal_mesh_component->SetMesh("Contents/yellow.rev");
 			ret &= AttachComponent(m_skeletal_mesh_component);
 			m_skeletal_mesh_component->SetLocalRotation(math::ToRadian(-90.0f), math::ToRadian(180.0f), 0.0f);
 			m_skeletal_mesh_component->SetLocalScale(100.f);
+			m_skeletal_mesh_component->SetAnimation("Idle");
 		}
 
 		ret &= AttachComponent(m_movement_component);
@@ -440,7 +444,8 @@ namespace revive
 		SetUseControllerPitch(false);
 		SetUseControllerYaw(false);
 		SetUseControllerRoll(false);
-	
+
+
 		return ret;
 	}  
 

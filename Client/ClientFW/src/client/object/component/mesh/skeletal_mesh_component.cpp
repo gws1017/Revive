@@ -36,7 +36,7 @@ namespace client_fw
 
 	void SkeletalMeshComponent::BoneTransformUpdate()
 	{
-		GetSkeletalMesh()->GetSkeleton()->UpdateToParent(mat4::IDENTITY);
+		GetSkeletalMesh()->GetSkeleton()->Update();
 		m_animation_controller->CopyBoneTransformData();
 	}
 	
@@ -59,9 +59,9 @@ namespace client_fw
 		auto& skeletal_mesh = GetSkeletalMesh();
 		
 		m_animation_controller->SetBoneData(skeletal_mesh->GetBoneData(), skeletal_mesh->GetSkeleton());
-		skeletal_mesh->GetSkeleton()->UpdateToParent(mat4::IDENTITY);
+		skeletal_mesh->GetSkeleton()->Update();
 		m_animation_controller->CopyBoneTransformData();
-
+		
 		return m_set_mesh;
 	}
 	void SkeletalMeshComponent::SetAnimation(const std::string& animation_name,bool looping)

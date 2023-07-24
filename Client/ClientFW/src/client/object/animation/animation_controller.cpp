@@ -143,7 +143,7 @@ namespace client_fw
     {
         for (UINT index = 0; index < m_cahce_skeleton.size(); ++index)
         {
-            Mat4 final_transform =  m_bone_offset[index] * m_cahce_skeleton[index].lock()->GetWorld();
+            Mat4 final_transform =  m_bone_offset[index] * m_cahce_skeleton[index].lock()->GetBoneTransform();
             final_transform.Transpose();
             m_bone_transform_resource[index] = final_transform;
         }

@@ -3,48 +3,62 @@
 
 namespace client_fw 
 {
-	const Mat4& Skeleton::GetWorld()
+	const Mat4& Skeleton::GetBoneTransform()
 	{
-		//UpdateTransform(mat4::IDENTITY);
-		return m_world;
+		return m_bone_transform;
 	}
-	const Mat4 Skeleton::GetTransposeWorld()
+	const Mat4& Skeleton::GetTranposeBoneTransform()
 	{
-		Mat4 temp = m_world;
-		temp.Transpose();
-		return temp;
+		m_bone_transform_T = m_bone_transform;
+		m_bone_transform_T.Transpose();
+		return m_bone_transform_T;
 	}
-	void Skeleton::UpdateToParent(const Mat4& to_parent)
+	void Skeleton::UpdateSkeletonTree(const Mat4& parent_transform)
 	{
-		if (m_parent == nullptr) m_world =m_to_parent = to_parent;
-		else m_world = m_to_parent * to_parent;
+		m_bone_transform = m_to_parent * parent_transform;
 
-		if (m_sibling) m_sibling->UpdateToParent(to_parent);
-		if (m_child) m_child->UpdateToParent(m_world);
-	}
-	void Skeleton::SetChild(SPtr<Skeleton>& child)
-	{
-		if (child)
-		{
-			child->m_parent = shared_from_this();
-		}
+		if (m_sibling)
+			m_sibling->UpdateSkeletonTree(parent_transform);
 		if (m_child)
-		{
-			if (child) child->m_sibling = m_child->m_sibling;
-			m_child->m_sibling = child;
-		}
+			m_child->UpdateSkeletonTree(m_bone_transform);
+	}
+
+	void Skeleton::Update()
+	{
+		UpdateSkeletonTree(mat4::IDENTITY);
+	}
+		
+	void Skeleton::SetChild(SPtr<Skeleton>& bone)
+	{
+		if (bone == nullptr) return;
+
+		bone->m_parent = shared_from_this();
+
+		if (m_child == nullptr)
+			m_child = bone;
 		else
 		{
-			m_child = child;
+			bone->m_sibling = m_child->m_sibling;
+			m_child->m_sibling = bone;
 		}
 	}
 
 	const SPtr<Skeleton> Skeleton::FindBone(const std::string& bone_name)
 	{
+		if (m_bone_name == bone_name)
+			return shared_from_this();
+
 		SPtr<Skeleton> cache_skeleton = nullptr;
-		if (m_bone_name.compare(bone_name) == false) return shared_from_this();
-		if (m_sibling) if (cache_skeleton = m_sibling->FindBone(bone_name))return cache_skeleton;
-		if (m_child) if (cache_skeleton = m_child->FindBone(bone_name))return cache_skeleton;
+		if (m_sibling)
+		{
+			if (cache_skeleton = m_sibling->FindBone(bone_name))
+				return cache_skeleton;
+		}
+		if (m_child)
+		{
+			if(cache_skeleton = m_child->FindBone(bone_name))
+				return cache_skeleton;
+		}
 
 		return nullptr;
 	}
