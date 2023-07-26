@@ -36,7 +36,7 @@ namespace anim_test
 
 		std::array<std::string, 7> animation_name = { "appear","attack", "death","hit","idle","run","Null" };
 		//std::array<std::string, 7> animation_name = { "attack_first","attack_second", "death","hit","idle","run","Null" };
-		auto skel_run = CreateSPtr<TestActor>(eMobilityState::kMovable, "../Revive/Contents/skeleton_king.rev","Null");
+		auto skel_run = CreateSPtr<TestActor>(eMobilityState::kMovable, "../Revive/Contents/skeleton_king.rev","idle");
 		SpawnActor(skel_run);
 		skel_run->SetPosition(Vec3{ 0.0f, 300.0f, 1000.0f });
 		skel_run->SetScale(100.f);

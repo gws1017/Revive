@@ -13,10 +13,30 @@ namespace client_fw
 		m_bone_transform_T.Transpose();
 		return m_bone_transform_T;
 	}
+	const Mat4& Skeleton::ToRootBone(const Mat4& child_mat)
+	{
+		if (m_parent == nullptr)
+			return child_mat;
+		else 
+		{
+			m_parent->ToRootBone(m_to_parent * child_mat);
+		}
+	}
+
+	const Vec3& Skeleton::ToRootBone(const Vec3& child_vec)
+	{
+		if (m_parent == nullptr)
+			return child_vec;
+		else
+		{
+			m_parent->ToRootBone(vec3::TransformCoord(child_vec, m_to_parent));
+		}
+	}
+
 	void Skeleton::UpdateSkeletonTree(const Mat4& parent_transform)
 	{
 		m_bone_transform = m_to_parent * parent_transform;
-
+		
 		if (m_sibling)
 			m_sibling->UpdateSkeletonTree(parent_transform);
 		if (m_child)

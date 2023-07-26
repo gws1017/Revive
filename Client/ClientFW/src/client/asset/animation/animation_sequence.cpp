@@ -45,21 +45,23 @@ namespace client_fw
 	void  AnimationTrack::SetAnimatedTransform(int& prev_time_index, int bone_index, float time_pos)
 	{
 		auto temp_bone = m_animated_skeleton.at(bone_index);
-		/*Vec3 scale = temp_bone->m_scale;
-		Vec3 rotate = temp_bone->m_rotation;
-		Vec3 trans = temp_bone->m_translation;*/
+
+		for (auto& bone : m_animated_skeleton)
+		{
+			LOG_INFO(bone->GetBoneName());
+		}
 
 		auto& temp_curve = m_anim_curves.at(bone_index);
 		auto& temp_key_frames = temp_curve[0]->m_key_frames;
 		float t = 0.0f;
-		
+
 		SearchKeyFrame(prev_time_index, time_pos, temp_key_frames);
 		int index = prev_time_index;
-		
+
 		Vec3 lerp_trans;
 		Vec3 lerp_rotate;
 		Vec3 lerp_scale;
-		if(index >= temp_key_frames.size() - 1){
+		if (index >= temp_key_frames.size() - 1) {
 			UINT size = static_cast<UINT>(temp_curve[0]->m_key_frames.size() - 1);
 			lerp_trans = Vec3{ temp_curve[0]->m_key_frames[size].key_value,temp_curve[1]->m_key_frames[size].key_value,temp_curve[2]->m_key_frames[size].key_value };
 			lerp_rotate = Vec3{ temp_curve[3]->m_key_frames[size].key_value,temp_curve[4]->m_key_frames[size].key_value,temp_curve[5]->m_key_frames[size].key_value };
@@ -79,24 +81,24 @@ namespace client_fw
 			lerp_rotate = vec3::Lerp(prev_rotate, rotate, t);
 			lerp_scale = vec3::Lerp(prev_scale, scale, t);
 		}
-		
-
 
 		lerp_trans *= m_weight;
 		lerp_rotate *= m_weight;
 		lerp_scale *= m_weight;
 
 		Mat4 S = mat4::CreateScale(lerp_scale);
-		//Mat4 R = mat4::CreateRotationFromQuaternion(quat::CreateQuaternionFromRollPitchYaw(lerp_rotate.x , lerp_rotate.y , lerp_rotate.z));
 		Mat4 R = mat4::CreateRotationX(lerp_rotate.x) * mat4::CreateRotationY(lerp_rotate.y) * mat4::CreateRotationZ(lerp_rotate.z);
 		Mat4 T = mat4::CreateTranslation(lerp_trans);
-
 
 		Mat4 transform = S * R * T;
 
 		temp_bone->m_scale = lerp_scale;
 		temp_bone->m_rotation = lerp_rotate;
 		temp_bone->m_translation = lerp_trans;
+
+		temp_bone->m_scale_matrix = S;
+		temp_bone->m_rotation_matrix = R;
+		temp_bone->m_translation_matrix = T;
 
 		temp_bone->SetToParent(transform);
 	}
