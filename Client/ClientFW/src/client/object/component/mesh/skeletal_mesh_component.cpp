@@ -16,7 +16,6 @@ namespace client_fw
 	bool SkeletalMeshComponent::Initialize()
 	{
 		m_animation_controller->Initialize();
-		m_animation_controller->SetOwner(SharedFromThis());
 		return MeshComponent::Initialize();
 	}
 
@@ -24,20 +23,14 @@ namespace client_fw
 	{
 		if (m_is_playing)
 		{
-			m_animation_controller->AnimToPlay(delta_time, m_looping);
-			BoneTransformUpdate();
+			GetSkeletalMesh()->GetSkeleton()->Update();
+			m_animation_controller->Update(delta_time);
 		}
 	}
 
 	void SkeletalMeshComponent::Shutdown()
 	{
 		MeshComponent::Shutdown();
-	}
-
-	void SkeletalMeshComponent::BoneTransformUpdate()
-	{
-		GetSkeletalMesh()->GetSkeleton()->Update();
-		m_animation_controller->CopyBoneTransformData();
 	}
 	
 	SPtr<SkeletalMesh> SkeletalMeshComponent::GetSkeletalMesh() const
@@ -54,13 +47,9 @@ namespace client_fw
 			return m_set_mesh;
 		}
 		else m_set_mesh = true;
-		m_animation_controller->SetMeshPath(file_path);
 
-		auto& skeletal_mesh = GetSkeletalMesh();
-		
-		m_animation_controller->SetBoneData(skeletal_mesh->GetBoneData(), skeletal_mesh->GetSkeleton());
-		skeletal_mesh->GetSkeleton()->Update();
-		m_animation_controller->CopyBoneTransformData();
+		m_animation_controller->SetOwner(SharedFromThis());
+		m_animation_controller->SetBoneData();
 		
 		return m_set_mesh;
 	}
@@ -76,8 +65,7 @@ namespace client_fw
 			{
 				SetIsPlaying(true);
 				m_animation_controller->SetAnimationName(animation_name);
-				m_animation_controller->SetAnimation(GetSkeletalMesh()->GetSkeleton());
-				SetLooping(looping);
+				m_animation_controller->SetAnimation(looping);
 			}
 		}
 	}

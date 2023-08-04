@@ -46,11 +46,6 @@ namespace client_fw
 	{
 		auto temp_bone = m_animated_skeleton.at(bone_index);
 
-		for (auto& bone : m_animated_skeleton)
-		{
-			LOG_INFO(bone->GetBoneName());
-		}
-
 		auto& temp_curve = m_anim_curves.at(bone_index);
 		auto& temp_key_frames = temp_curve[0]->m_key_frames;
 		float t = 0.0f;

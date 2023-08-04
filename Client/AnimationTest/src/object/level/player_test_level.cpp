@@ -50,7 +50,7 @@ namespace anim_test
 		RegisterPressedEvent("animation view", { {eKey::kN} }, [this,skel_run,animation_name]()->bool 
 		{
 			LOG_INFO(animation_name[m_animation_set_index]);
-			skel_run->SetAnimation(animation_name[m_animation_set_index++]); 
+			skel_run->SetAnimation(animation_name[m_animation_set_index++],false); 
 			if (m_animation_set_index >= 7)
 				m_animation_set_index = 0;
 			return true;

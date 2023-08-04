@@ -16,35 +16,30 @@ namespace client_fw
     bool AnimationController::Initialize()
     {
         m_time_pos = 0;
-        m_prev_time_index = 0;
+        m_curr_frame = 0;
+        if(m_anim_seq) m_anim_seq->GetDefaultTime(m_start_time, m_end_time);
+        m_ready_animation_name.clear();
+        m_ready_anim_seq = nullptr;
+        m_is_end_animation = false;
         return true;
     }
 
-    void AnimationController::SetAnimation( const SPtr<Skeleton>& skeleton)
+    void AnimationController::Update(float delta_time)
     {
-        if (m_is_update_animation == true)
-            m_ready_anim_seq = AssetStore::LoadAnimation(GetAnimationPath(m_ready_animation_name), skeleton);
-        else
-        {
-            m_anim_seq = AssetStore::LoadAnimation(GetAnimationPath(m_animation_name), skeleton);
-            m_anim_seq->GetDefaultTime(m_start_time, m_end_time);
-            m_time_pos = 0;
-            m_prev_time_index = 0;
-            m_ready_anim_seq = nullptr;
-        }
+        AnimToPlay(delta_time);
+        CopyBoneTransformData();
     }
 
-    void AnimationController::AnimToPlay(float delta_time, bool m_looping)
+    void AnimationController::AnimToPlay(float delta_time)
     {
+        if (m_looping == false && m_is_end_animation == true)
+            return;
+
         if(m_ready_anim_seq != nullptr)
         {
             m_anim_seq = m_ready_anim_seq;
-            m_anim_seq->GetDefaultTime(m_start_time, m_end_time);
-            m_ready_anim_seq = nullptr;
             m_animation_name = m_ready_animation_name;
-            m_ready_animation_name.clear();
-            m_time_pos = 0;
-            m_prev_time_index = 0;
+            Initialize();
         }
 
         if (m_anim_seq) {
@@ -52,24 +47,15 @@ namespace client_fw
             m_is_update_animation = true;
 
             float time_pos = m_time_pos;
-            int prev_index = m_prev_time_index;
+            int prev_frame = m_curr_frame;
 
-            if (m_looping)
-            {
-				time_pos += delta_time * m_animation_speed;
-				if (time_pos < m_start_time) time_pos = m_start_time;
-            }
-            else
-            {
-                time_pos += delta_time * m_animation_speed;
-                m_time_pos = time_pos;
-            }
+            time_pos += delta_time * m_animation_speed;
 
-            m_anim_seq->AnimToPlay(m_prev_time_index , time_pos);
+            m_anim_seq->AnimToPlay(m_curr_frame, time_pos);
 
             auto it = m_notify_map.find(m_animation_name);
             if (it != m_notify_map.end()) {
-                for (int i = prev_index; i <= m_prev_time_index; ++i)
+                for (int i = prev_frame; i <= m_curr_frame; ++i)
                 {
                     if (i == it->second.frame_index)
                     {
@@ -82,13 +68,29 @@ namespace client_fw
             if (time_pos >= m_end_time)
 			{
 				time_pos = m_start_time;
-				m_prev_time_index = 0;
+                m_curr_frame = 0;
+                m_is_end_animation = true;
 			}
 			m_time_pos = time_pos;
 
             m_is_update_animation = false;
         }
         
+    }
+
+    void AnimationController::SetAnimation(bool looping)
+    {
+        m_looping = looping;
+
+        const auto& skeleton = m_owner.lock()->GetSkeletalMesh()->GetSkeleton();
+
+        if (m_is_update_animation == true)
+            m_ready_anim_seq = AssetStore::LoadAnimation(GetAnimationPath(m_ready_animation_name), skeleton);
+        else
+        {
+            m_anim_seq = AssetStore::LoadAnimation(GetAnimationPath(m_animation_name), skeleton);
+            Initialize();
+        }
     }
 
     void AnimationController::SetAnimationName(const std::string& animation_name)
@@ -99,12 +101,15 @@ namespace client_fw
             m_animation_name = animation_name;
     }
    
-    void AnimationController::SetBoneData(const SPtr<BoneData>& bone_data, const SPtr<Skeleton>& skeleton)
+    void AnimationController::SetBoneData()
     {
+        auto& skeleton = m_owner.lock()->GetSkeletalMesh()->GetSkeleton();
+        auto& bone_data = m_owner.lock()->GetSkeletalMesh()->GetBoneData();
+
         if (m_cahce_skeleton.empty())
         {
             UINT index = 0;
-            for (auto& name : bone_data->bone_names)
+            for (auto& name : bone_data->bone_names)//인덱스형 루프로 바꾸자
             {
                 auto cache_skeleton = skeleton->FindBone(name);
                 m_cahce_skeleton.emplace_back(cache_skeleton);
@@ -122,6 +127,8 @@ namespace client_fw
         {
             m_notify_map.insert({ name,{frame_index,animation_name,function} });
         }
+        else
+            LOG_WARN("{0} is already existed Notify Name!");
     }
 
     const Mat4& AnimationController::FindTransformToSocketName(const std::string& socket_name)
@@ -150,8 +157,9 @@ namespace client_fw
     }
     const std::string AnimationController::GetAnimationPath(const std::string& animation_name)
     {
-        std::string parent_path = file_help::GetParentPathFromPath(m_mesh_path);
-        std::string stem = file_help::GetStemFromPath(m_mesh_path);
+        std::string mesh_path = m_owner.lock()->GetMesh()->GetPath();
+        std::string parent_path = file_help::GetParentPathFromPath(mesh_path);
+        std::string stem = file_help::GetStemFromPath(mesh_path);
         std::string animation_path = parent_path + "/" + stem + "_" + animation_name + ".rev";
         return animation_path;
     }

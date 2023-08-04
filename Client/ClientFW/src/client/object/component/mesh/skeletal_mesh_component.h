@@ -26,11 +26,9 @@ namespace client_fw
 
 		std::string m_animation_name;
 
-		bool m_looping = true;
 		bool m_is_playing = true;
 		bool m_set_mesh = false;
 
-		void BoneTransformUpdate();
 	public:
 		SPtr<SkeletalMesh> GetSkeletalMesh() const;
 		virtual bool SetMesh(const std::string& file_path);
@@ -41,8 +39,7 @@ namespace client_fw
 		const Mat4 GetSocketWorldMatrix(const std::string& socket_name);
 		const Quaternion GetSocketWorldRotation(const std::string& socket_name);
 
-		const bool IsLooping() { return m_looping; }
-		void SetLooping(const bool looping) { m_looping = looping; }
+		const bool IsLooping() { return m_animation_controller->IsLooping(); }
 
 		const bool IsPlaying() { return m_is_playing; }
 		void SetIsPlaying(const bool is_playing) { m_is_playing = is_playing; }

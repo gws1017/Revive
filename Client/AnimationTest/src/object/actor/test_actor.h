@@ -21,7 +21,7 @@ namespace anim_test
 		virtual void Update(float delta_time) override;
 		virtual void Shutdown() override;
 
-		void SetAnimation(const std::string& animation_name);
+		void SetAnimation(const std::string& animation_name,bool looping = true);
 
 		void SetWeapon(const std::string& mesh_path,const std::string& socket_name);
 		void SetWeaponOffset(const Vec3& offset);

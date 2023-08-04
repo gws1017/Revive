@@ -22,21 +22,28 @@ namespace client_fw
 		virtual ~AnimationController() = default;
 
 		bool Initialize();
+		void Update(float delta_time);
 
-		const std::vector<Mat4>& GetBoneTransformData() { return m_bone_transform_resource; }
+	private:
+		
+		void AnimToPlay(float delta_time);
+
 		void CopyBoneTransformData();
 
 	public:
-		void SetMeshPath(const std::string& mesh_path) { m_mesh_path = mesh_path; }
+
+		const bool IsLooping() { return m_looping; }
+
+		const std::vector<Mat4>& GetBoneTransformData() { return m_bone_transform_resource; }
+		
 		const std::string GetAnimationPath(const std::string& animation_name);
 
-		void SetAnimation(const SPtr<Skeleton>& skeleton);
-		void AnimToPlay(float delta_time, bool m_looping);
+		void SetAnimation(bool looping = true);
 
 		void SetAnimationName(const std::string& animation_name); 
 		const std::string GetAnimationName() { return m_animation_name; }
 
-		void SetBoneData(const SPtr<BoneData>& bone_data, const SPtr<Skeleton>& skeleton);
+		void SetBoneData();
 
 		const float GetCurretPlayTime() const { return m_time_pos; }
 
@@ -50,11 +57,12 @@ namespace client_fw
 		const Mat4& FindTransformToSocketName(const std::string& socket_name);
 
 	private:
-		std::string m_mesh_path;
 		std::string m_animation_name;
 		std::string m_ready_animation_name;
 
 		bool m_is_update_animation = false;
+		bool m_is_end_animation = false;
+		bool m_looping = true;
 
 		float m_start_time;
 		float m_end_time;
@@ -63,7 +71,7 @@ namespace client_fw
 
 		float m_animation_speed = 1.0f;
 
-		int m_prev_time_index = 0;
+		int m_curr_frame = 0;
 
 		UINT m_instance_index;
 		SPtr<AnimationSequence> m_anim_seq = nullptr;
@@ -75,12 +83,6 @@ namespace client_fw
 		std::unordered_map<std::string, UINT> m_bone_socket_info; //최종 계산된 데이터를 뼈이름으로 찾기 위해 사용
 
 		
-		//Notify가 저장되는 곳
-		//원래는 AnimNotify라는 클래스를 따로만들어서 
-		//그곳에서 사용되는 애니메이션을 모아서
-		//해당 클래스를 플레이어에 멤버로 넣고, 그 객체를 통해서
-		//Notify를 등록 & 관리하는게 맞지만 
-		//시간관계상 animation controller에 기능을 넣었다.
 		std::unordered_map<std::string, NotifyData> m_notify_map;
 	};
 }

@@ -36,9 +36,9 @@ namespace anim_test
 		m_static_mesh_component = nullptr;
 	}
 
-	void TestActor::SetAnimation(const std::string& animation_name)
+	void TestActor::SetAnimation(const std::string& animation_name,bool looping)
 	{
-		m_skeletal_mesh_component->SetAnimation(animation_name);
+		m_skeletal_mesh_component->SetAnimation(animation_name,looping);
 	}
 
 	void TestActor::SetWeapon(const std::string& mesh_path, const std::string& socket_name)
