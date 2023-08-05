@@ -104,12 +104,12 @@ namespace client_fw
     void AnimationController::SetBoneData()
     {
         auto& skeleton = m_owner.lock()->GetSkeletalMesh()->GetSkeleton();
-        auto& bone_data = m_owner.lock()->GetSkeletalMesh()->GetBoneData();
+        m_bone_data = m_owner.lock()->GetSkeletalMesh()->GetBoneData();
 
         if (m_cahce_skeleton.empty())
         {
             UINT index = 0;
-            for (auto& name : bone_data->bone_names)//인덱스형 루프로 바꾸자
+            for (auto& name : m_bone_data.lock()->bone_names)//인덱스형 루프로 바꾸자
             {
                 auto cache_skeleton = skeleton->FindBone(name);
                 m_cahce_skeleton.emplace_back(cache_skeleton);
@@ -118,7 +118,6 @@ namespace client_fw
             }
         }
         m_bone_transform_resource.resize(m_cahce_skeleton.size());
-        m_bone_offset = bone_data->bone_offsets;
     }
 
     void AnimationController::AddNotify(const std::string name, const std::string animation_name, int frame_index, const std::function<void()>& function)
@@ -131,7 +130,7 @@ namespace client_fw
             LOG_WARN("{0} is already existed Notify Name!");
     }
 
-    const Mat4& AnimationController::FindTransformToSocketName(const std::string& socket_name)
+    const Mat4& AnimationController::FindTransformToBoneName(const std::string& socket_name)
     {
         if (m_cahce_skeleton.empty() == false)
         {
@@ -150,7 +149,7 @@ namespace client_fw
     {
         for (UINT index = 0; index < m_cahce_skeleton.size(); ++index)
         {
-            Mat4 final_transform =  m_bone_offset[index] * m_cahce_skeleton[index].lock()->GetBoneTransform();
+            Mat4 final_transform = m_bone_data.lock()->bone_offsets[index] * m_cahce_skeleton[index].lock()->GetBoneTransform();
             final_transform.Transpose();
             m_bone_transform_resource[index] = final_transform;
         }

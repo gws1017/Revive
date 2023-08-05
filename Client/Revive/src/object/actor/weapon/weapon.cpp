@@ -31,11 +31,11 @@ namespace revive
 		if (m_attached_actor.expired() == false)
 		{
 			m_static_mesh_component->SetLocalPosition(m_position_offset);
-			Mat4 socket_world_matrix = m_attached_skeletal_mesh_component.lock()->GetSocketWorldMatrix(m_socket_name);
+			Mat4 socket_world_matrix = m_attached_skeletal_mesh_component.lock()->GetBoneWorldMatrix(m_socket_name);
 			SetPosition(Vec3{ socket_world_matrix._41,socket_world_matrix._42,socket_world_matrix._43 });
 			SetRotation(
 				quat::CreateQuaternionFromRollPitchYaw(math::ToRadian(m_rotation_offset.x), math::ToRadian(m_rotation_offset.y), math::ToRadian(m_rotation_offset.z))/*quat::CreateQuaternionFromAxis(vec3::AXIS_X,math::ToRadian(70.f))*///오프셋 값
-				* m_attached_skeletal_mesh_component.lock()->GetSocketWorldRotation(m_socket_name)
+				* m_attached_skeletal_mesh_component.lock()->GetBoneWorldRotation(m_socket_name)
 			);
 		}
 	}

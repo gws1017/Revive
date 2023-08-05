@@ -59,9 +59,9 @@ namespace client_fw
 		{
 			m_animation_name = animation_name;
 			
-			if (animation_name.compare("Null") == 0)
+			if (animation_name == "Null")
 				SetIsPlaying(false);
-			else if (animation_name.compare("Null") != 0)
+			else 
 			{
 				SetIsPlaying(true);
 				m_animation_controller->SetAnimationName(animation_name);
@@ -70,27 +70,27 @@ namespace client_fw
 		}
 	}
 
-	const Vec3 SkeletalMeshComponent::GetSocketWorldPosition(const std::string& socket_name)
+	const Vec3 SkeletalMeshComponent::GetBoneWorldPosition(const std::string& bone_name)
 	{
-		const auto& socket_world_matrix = GetSocketWorldMatrix(socket_name);
-		return Vec3{ socket_world_matrix._41,socket_world_matrix._42,socket_world_matrix._43};
+		const auto& world_matrix = GetBoneWorldMatrix(bone_name);
+		return Vec3{ world_matrix._41,world_matrix._42,world_matrix._43};
 	}
 
-	const Mat4 SkeletalMeshComponent::GetSocketWorldMatrix(const std::string& socket_name)
+	const Mat4 SkeletalMeshComponent::GetBoneWorldMatrix(const std::string& bone_name)
 	{
-		Mat4 socket_matrix = m_animation_controller->FindTransformToSocketName(socket_name);
-		socket_matrix.Transpose();
-		return socket_matrix * GetWorldMatrix();
+		Mat4 bone_matrix = m_animation_controller->FindTransformToBoneName(bone_name);
+		bone_matrix.Transpose();
+		return bone_matrix * GetWorldMatrix();
 	}
 
-	const Quaternion SkeletalMeshComponent::GetSocketWorldRotation(const std::string& socket_name)
+	const Quaternion SkeletalMeshComponent::GetBoneWorldRotation(const std::string& bone_name)
 	{
-		Mat4 socket_matrix = m_animation_controller->FindTransformToSocketName(socket_name);
-		socket_matrix.Transpose();
-		Quaternion socket_rotation;
-		XMStoreFloat4(&socket_rotation, XMQuaternionRotationMatrix(XMLoadFloat4x4(&socket_matrix)));
+		Mat4 bone_matrix = m_animation_controller->FindTransformToBoneName(bone_name);
+		bone_matrix.Transpose();
+		Quaternion bone_rotation;
+		XMStoreFloat4(&bone_rotation, XMQuaternionRotationMatrix(XMLoadFloat4x4(&bone_matrix)));
 
-		return socket_rotation * GetWorldRotation();
+		return bone_rotation * GetWorldRotation();
 	}
 
 	SPtr<SkeletalMeshComponent> SkeletalMeshComponent::SharedFromThis()
