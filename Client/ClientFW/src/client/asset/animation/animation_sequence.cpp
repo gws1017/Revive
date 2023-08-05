@@ -8,9 +8,9 @@ namespace client_fw
 	{
 	}
 
-	void AnimationSequence::AnimToPlay(int& prev_time_index, float time_pos)
+	void AnimationSequence::AnimToPlay(int& curr_frame, float time_pos)
 	{ 
-		m_anim_track->TrackToPlay(prev_time_index, time_pos);
+		m_anim_track->TrackToPlay(curr_frame, time_pos);
 	}
 
 	void AnimationTrack::InitialIze(int b_count,float weight )
@@ -22,27 +22,27 @@ namespace client_fw
 		m_anim_curves.resize(b_count);
 	}
 
-	void AnimationTrack::TrackToPlay(int& prev_time_index, float time_pos)
+	void AnimationTrack::TrackToPlay(int& curr_frame, float time_pos)
 	{
 		for (int i = 0; i < m_animated_bone_count; ++i)
 		{
-			SetAnimatedTransform(prev_time_index,i, time_pos);
+			UpdateAnimatedTransform(curr_frame,i, time_pos);
 		}
 	}
 
-	void AnimationTrack::SearchKeyFrame(int& prev_time_index, float time_pos,const std::vector<KeyFrame>& key_frames)
+	void AnimationTrack::SearchKeyFrame(int& curr_frame, float time_pos,const std::vector<KeyFrame>& key_frames)
 	{
-		for (int i = prev_time_index; i < (key_frames.size()-1); ++i)
+		for (int i = curr_frame; i < (key_frames.size()-1); ++i)
 		{
 			if ((key_frames[i].key_time <= time_pos) && (time_pos < key_frames[i + 1].key_time))
 			{
-				prev_time_index = i;
+				curr_frame = i;
 				return;
 			}
 		}
 	}
 
-	void  AnimationTrack::SetAnimatedTransform(int& prev_time_index, int bone_index, float time_pos)
+	void  AnimationTrack::UpdateAnimatedTransform(int& curr_frame, int bone_index, float time_pos)
 	{
 		auto temp_bone = m_animated_skeleton.at(bone_index);
 
@@ -50,8 +50,8 @@ namespace client_fw
 		auto& temp_key_frames = temp_curve[0]->m_key_frames;
 		float t = 0.0f;
 
-		SearchKeyFrame(prev_time_index, time_pos, temp_key_frames);
-		int index = prev_time_index;
+		SearchKeyFrame(curr_frame, time_pos, temp_key_frames);
+		int index = curr_frame;
 
 		Vec3 lerp_trans;
 		Vec3 lerp_rotate;
@@ -98,28 +98,7 @@ namespace client_fw
 		temp_bone->SetToParent(transform);
 	}
 	
-	SPtr<AnimationCurve> LoadKeyValue(FILE* file)
-	{
-
-		SPtr<AnimationCurve> anim_curve = CreateSPtr<AnimationCurve>();
-
-		int temp_int;
-
-		fread(&temp_int, sizeof(int), 1, file); //key_frame_count
-		std::vector<KeyFrame> key_frames(temp_int);
-
-		
-		for (auto& key_frame : key_frames)
-			fread(&(key_frame.key_time), sizeof(float), 1, file);
-		for (auto& key_frame : key_frames)
-			fread(&(key_frame.key_value), sizeof(float), 1, file); 
-
-		
-		anim_curve->m_key_frames = key_frames;
-
-		return anim_curve;
-	}
-
+	
 
 	
 }

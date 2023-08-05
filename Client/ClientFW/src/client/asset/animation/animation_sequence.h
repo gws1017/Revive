@@ -32,8 +32,6 @@ namespace client_fw
 		int m_animated_bone_count;
 		float m_weight;
 
-		int m_prev_time_index = 0;//위치변경
-
 		std::vector<SPtr<Skeleton>> m_animated_skeleton;
 
 		std::vector<std::vector<SPtr<AnimationCurve>>> m_anim_curves;
@@ -46,12 +44,12 @@ namespace client_fw
 		void SetAnimationCurves(const std::vector<std::vector<SPtr<AnimationCurve>>>& curves) { m_anim_curves = curves; }
 		void SetCacheSkel(const std::vector<SPtr<Skeleton>>& animated_skeleton) { m_animated_skeleton = animated_skeleton; }
 		
-		void SearchKeyFrame(int& prev_time_index, float time_pos, const std::vector<KeyFrame>& key_frames);
+		void SearchKeyFrame(int& curr_frame, float time_pos, const std::vector<KeyFrame>& key_frames);
 
 
-		void TrackToPlay(int& prev_time_index, float time_pos);
+		void TrackToPlay(int& curr_frame, float time_pos);
 		
-		void SetAnimatedTransform(int& prev_time_index, int bone_index,float time_pos);
+		void UpdateAnimatedTransform(int& curr_frame, int bone_index,float time_pos);
 		std::vector<SPtr<Skeleton>>& GetAnimatedSkeleton() { return m_animated_skeleton; }
 
 	};
@@ -67,7 +65,7 @@ namespace client_fw
 		std::string anim_name;
 		SPtr<AnimationTrack> m_anim_track;
 
-		void AnimToPlay(int& prev_time_index, float time_pos);
+		void AnimToPlay(int& curr_frame, float time_pos);
 		void GetDefaultTime(float& s_time, float& e_time) { m_anim_track->GetDefaultTime(s_time, e_time); }
 		void SetDefaultTime(const float s_time, const float e_time) { m_anim_track->SetDefaultTime(s_time,e_time); }
 		const std::vector<SPtr<Skeleton>>& GetAnimatedSkeleton() { return m_anim_track->GetAnimatedSkeleton(); }
@@ -77,6 +75,6 @@ namespace client_fw
 
 	};
 
-	SPtr<AnimationCurve> LoadKeyValue(FILE* file);
+	
 
 }

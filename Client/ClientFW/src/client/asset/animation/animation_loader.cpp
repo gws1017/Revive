@@ -396,4 +396,25 @@ namespace client_fw
 		}
 
 	}
+
+	SPtr<AnimationCurve> AnimationLoader::LoadKeyValue(FILE* file) const
+	{
+		SPtr<AnimationCurve> anim_curve = CreateSPtr<AnimationCurve>();
+
+		int temp_int;
+
+		fread(&temp_int, sizeof(int), 1, file); //key_frame_count
+		std::vector<KeyFrame> key_frames(temp_int);
+
+
+		for (auto& key_frame : key_frames)
+			fread(&(key_frame.key_time), sizeof(float), 1, file);
+		for (auto& key_frame : key_frames)
+			fread(&(key_frame.key_value), sizeof(float), 1, file);
+
+		anim_curve->m_key_frames = key_frames;
+
+		return anim_curve;
+	}
+
 }
