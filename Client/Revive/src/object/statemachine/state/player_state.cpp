@@ -62,7 +62,7 @@ namespace revive
 		//LOG_INFO("Dead State");
 		const auto& player = m_player.lock();
 		player->SetIsDying(true);
-		player->SetAnimation("death", false);
+		player->SetAnimation("death");
 	}
 
 
@@ -70,7 +70,7 @@ namespace revive
 	{
 		const auto& player = m_player.lock();
 		//LOG_INFO(player->GetName() + "Attack State");
-		player->SetAnimation("attack_first", false);
+		player->SetAnimation("attack_first");
 		player->SetAnimationSpeed(1.1f);
 		//player->Attack();
 	}
@@ -96,7 +96,7 @@ namespace revive
 		//LOG_INFO("HitState");
 		const auto& player = m_player.lock();
 		player->SetMeshPosition(Vec3{ 0,10,0 });
-		player->SetAnimation("hit", false);
+		player->SetAnimation("hit");
 		player->SetAnimationSpeed(0.6f);
 	}
 

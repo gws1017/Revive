@@ -163,7 +163,7 @@ namespace revive
 			if (hp < 0) hp = 0;
 			SetHP(hp);
 			m_ui_layer->SetHPPercent(GetHP() / GetMaxHP());
-			m_skeletal_mesh_component->SetAnimation("hit", false);
+			m_skeletal_mesh_component->SetAnimation("hit");
 			m_is_attacking = false;
 
 			break;
@@ -171,7 +171,7 @@ namespace revive
 		case HashCode("dead"):
 		{
 			PacketHelper::DisconnectActorFromServer(m_network_id);
-			m_skeletal_mesh_component->SetAnimation("death", false);
+			m_skeletal_mesh_component->SetAnimation("death");
 			m_is_attacking = false;
 			m_mob_count_decrement_function();
 			break;
@@ -210,13 +210,13 @@ namespace revive
 	void Enemy::Attack()
 	{
 		/*LOG_INFO(m_name + "이(가) 공격한다!");*/
-		m_skeletal_mesh_component->SetAnimation("attack", false);
+		m_skeletal_mesh_component->SetAnimation("attack");
 		m_is_attacking = true;
 	}
 
 	void Enemy::Hit(int damage, int nw_id) 
 	{
-		m_skeletal_mesh_component->SetAnimation("hit", false);
+		m_skeletal_mesh_component->SetAnimation("hit");
 		//m_hp -= damage;
 		PacketHelper::RegisterPacketEventToServer(CreateSPtr<ObjectHitMessageEventInfo>(HashCode("send hit"), m_network_id,nw_id));
 		//LOG_INFO(m_name + " HP : {0}, 입은 피해 : {1}", m_hp, damage);

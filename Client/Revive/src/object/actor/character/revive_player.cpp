@@ -292,7 +292,7 @@ namespace revive
 		//공격2 전환 및 종료
 		m_skeletal_mesh_component->AddNotify("First Attack", "attack_first", 17,
 			[this]() {
-			SetAnimation("attack_second", false);
+			SetAnimation("attack_second");
 			m_is_fire = false;
 		});
 		m_skeletal_mesh_component->AddNotify("Second Attack End", "attack_second", 17,

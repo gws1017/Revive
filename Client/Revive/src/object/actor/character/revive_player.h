@@ -89,7 +89,7 @@ namespace revive
 
 		bool SetColor(COLOR_TYPE color_type);
 		void SetMeshPosition(const Vec3& pos);
-		void SetAnimation(const std::string& animation_name, bool looping);
+		void SetAnimation(const std::string& animation_name, bool looping = true);
 		void DecrementHitCount() { m_hit_count--; }
 
 		const int GetNetworkID()const { return m_network_id; }
