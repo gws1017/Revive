@@ -12,7 +12,7 @@ namespace client_fw
 		UINT m_additional_info = 0;
 	};
 
-	struct RSSkeletalData
+	struct RSSkeletalInstanceData
 	{
 		Mat4 bone_transform;
 	};
@@ -108,14 +108,14 @@ namespace client_fw
 		UINT m_size_of_skeletal_transform_data = 1;
 
 		UPtr<UploadBuffer<RSInstanceData>> m_skeletal_instance_data;
-		UPtr<UploadBuffer<RSSkeletalData>> m_skeletal_transform_data;
+		UPtr<UploadBuffer<RSSkeletalInstanceData>> m_skeletal_transform_data;
 
 	public:
 		UINT GetSizeOfSkeletalTransformData() const { return m_size_of_skeletal_transform_data; }
 		void SetSizeOfSkeletalTransformData(UINT value) { m_size_of_skeletal_transform_data = value; }
 
 		const UPtr<UploadBuffer<RSInstanceData>>& GetInstanceData() const { return m_skeletal_instance_data; }
-		const UPtr<UploadBuffer<RSSkeletalData>>& GetSkeletalTransformData() const { return m_skeletal_transform_data; }
+		const UPtr<UploadBuffer<RSSkeletalInstanceData>>& GetSkeletalTransformData() const { return m_skeletal_transform_data; }
 	};
 }
 

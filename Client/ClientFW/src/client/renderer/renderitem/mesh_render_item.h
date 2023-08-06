@@ -8,7 +8,7 @@ namespace client_fw
 	class StaticMeshComponent;
 	class SkeletalMeshComponent;
 	struct RSInstanceData;
-	struct RSSkeletalData;
+	struct RSSkeletalInstanceData;
 	struct MeshesInstanceDrawInfo;
 
 	enum class eRenderLevelType;
@@ -81,7 +81,7 @@ namespace client_fw
 		std::map<std::string, SPtr<SkeletalMeshData>> m_skeletal_mesh_data_map;
 
 		std::map<eRenderLevelType, std::vector<RSInstanceData>> m_skeletal_meshes_instance_data;
-		std::map<eRenderLevelType, std::vector<RSSkeletalData>> m_skeletal_transforms_data;
+		std::map<eRenderLevelType, std::vector<RSSkeletalInstanceData>> m_skeletal_transforms_data;
 
 		std::vector<UINT> m_bone_count_data;
 	};

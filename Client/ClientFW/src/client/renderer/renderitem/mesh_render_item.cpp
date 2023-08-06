@@ -230,7 +230,7 @@ namespace client_fw
 		MeshesInstanceDrawInfo instance_info;
 		instance_info.start_index = static_cast<UINT>(m_skeletal_meshes_instance_data[level_type].size());
 
-		UINT skeletal_transform_start_index = static_cast<UINT>(m_skeletal_transforms_data[level_type].size());
+		UINT bone_start_index_for_camera = 0;
 		UINT mesh_start_index_for_camera = 0;
 		for (const auto& mesh_data : m_skeletal_mesh_data)
 		{
@@ -243,9 +243,9 @@ namespace client_fw
 				continue;
 
 			std::vector<std::vector<RSInstanceData>> instance_data(mesh_data->mesh->GetLODCount());
-			std::vector<std::vector<RSSkeletalData>> skeletal_transform_data(mesh_data->mesh->GetLODCount());
+			std::vector<std::vector<RSSkeletalInstanceData>> skeletal_transform_data(mesh_data->mesh->GetLODCount());
 			UINT bone_count = mesh_data->mesh_comps[0]->GetSkeletalMesh()->GetBoneCount();
-			UINT transform_start_index = 0;
+			UINT bone_start_index = 0;
 
 			for (const auto& mesh_comp : mesh_data->mesh_comps)
 			{
@@ -254,13 +254,12 @@ namespace client_fw
 					UINT lod = mesh_comp->GetLevelOfDetail();
 
 					const auto& bone_transform_data = mesh_comp->GetBoneTransformData();
-					for (UINT index = 0; index < bone_count; ++index)
-						skeletal_transform_data[lod].emplace_back(RSSkeletalData{ bone_transform_data[index] });
-
+					for (UINT index = 0; index < bone_count; ++index) 
+						skeletal_transform_data[lod].emplace_back(RSSkeletalInstanceData{ bone_transform_data[index] });
 					instance_data[lod].emplace_back(RSInstanceData{ mesh_comp->GetWorldTransposeMatrix(), mesh_comp->GetWorldInverseMatrix(),
-						transform_start_index + skeletal_transform_start_index });
+						bone_start_index_for_camera + bone_start_index });
 
-					transform_start_index += bone_count;
+					bone_start_index += bone_count;
 
 					mesh_comp->SetVisiblity(false);
 				}
@@ -277,7 +276,7 @@ namespace client_fw
 
 			info.draw_start_index = mesh_start_index_for_camera;
 			mesh_start_index_for_camera += mesh_count;
-			skeletal_transform_start_index += bone_count * mesh_count;
+			bone_start_index_for_camera += bone_count * mesh_count;
 
 			for (auto& data : instance_data)
 				std::move(data.begin(), data.end(), std::back_inserter(m_skeletal_meshes_instance_data[level_type]));
@@ -322,30 +321,29 @@ namespace client_fw
 
 			skeletal_mesh_resource->GetInstanceData()->CopyVectorData(std::move(m_skeletal_meshes_instance_data[level_type]));
 			m_skeletal_meshes_instance_data[level_type].clear();
+		}
 
-			UINT new_skeletal_transform_data_size = static_cast<UINT>(m_skeletal_transforms_data[level_type].size());
+		new_size = static_cast<UINT>(m_skeletal_transforms_data[level_type].size());
 
-			if (new_skeletal_transform_data_size > 0)
+		if (new_size > 0)
+		{
+			UINT skeletal_transfrom_size = skeletal_mesh_resource->GetSizeOfSkeletalTransformData();
+			bool is_need_skeletal_transform_resource_create = false;
+
+			while (skeletal_transfrom_size <= new_size)
 			{
-				UINT skeletal_transfrom_size = skeletal_mesh_resource->GetSizeOfSkeletalTransformData();
-				bool is_need_skeletal_transform_resource_create = false;
-
-				while (skeletal_transfrom_size <= new_skeletal_transform_data_size)
-				{
-					skeletal_transfrom_size = static_cast<UINT>(roundf(static_cast<float>(skeletal_transfrom_size) * 1.5f));
-					is_need_skeletal_transform_resource_create = true;
-				}
-
-				if (is_need_skeletal_transform_resource_create)
-				{
-					skeletal_mesh_resource->GetSkeletalTransformData()->CreateResource(device, skeletal_transfrom_size);
-					skeletal_mesh_resource->SetSizeOfSkeletalTransformData(skeletal_transfrom_size);
-				}
-			
-				skeletal_mesh_resource->GetSkeletalTransformData()->CopyVectorData(std::move(m_skeletal_transforms_data[level_type]));
-				m_skeletal_transforms_data[level_type].clear();
+				skeletal_transfrom_size = static_cast<UINT>(roundf(static_cast<float>(skeletal_transfrom_size) * 1.5f));
+				is_need_skeletal_transform_resource_create = true;
 			}
 
+			if (is_need_skeletal_transform_resource_create)
+			{
+				skeletal_mesh_resource->GetSkeletalTransformData()->CreateResource(device, skeletal_transfrom_size);
+				skeletal_mesh_resource->SetSizeOfSkeletalTransformData(skeletal_transfrom_size);
+			}
+
+			skeletal_mesh_resource->GetSkeletalTransformData()->CopyVectorData(std::move(m_skeletal_transforms_data[level_type]));
+			m_skeletal_transforms_data[level_type].clear();
 		}
 	}
 
@@ -363,6 +361,7 @@ namespace client_fw
 
 			const auto& instance_data = skeletal_mesh_resource->GetInstanceData();
 			const auto& skeletal_transform_data = skeletal_mesh_resource->GetSkeletalTransformData();
+
 			command_list->SetGraphicsRootShaderResourceView(7, skeletal_transform_data->GetResource()->GetGPUVirtualAddress());
 
 			for (const auto& mesh_info : instance_info.mesh_draw_infos)

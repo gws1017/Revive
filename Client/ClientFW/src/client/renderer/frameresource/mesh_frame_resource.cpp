@@ -41,7 +41,7 @@ namespace client_fw
 	SkeletalMeshFrameResource::SkeletalMeshFrameResource()
 	{
 		m_skeletal_instance_data = CreateUPtr<UploadBuffer<RSInstanceData>>(false);
-		m_skeletal_transform_data = CreateUPtr<UploadBuffer<RSSkeletalData>>(false);
+		m_skeletal_transform_data = CreateUPtr<UploadBuffer<RSSkeletalInstanceData>>(false);
 	}
 
 	SkeletalMeshFrameResource::~SkeletalMeshFrameResource()
