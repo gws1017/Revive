@@ -484,7 +484,7 @@ namespace client_fw
 			if (prefix.compare("<Transform>:") == 0)
 			{
 				fread(&temp_mat4, sizeof(Mat4), 1, rev_file);
-				skeleton->SetToParent(temp_mat4);
+				skeleton->SetTransform(temp_mat4);
 				fread(&skeleton->m_scale, sizeof(Vec3), 1, rev_file);
 				fread(&skeleton->m_rotation, sizeof(Vec3), 1, rev_file);
 				fread(&skeleton->m_translation, sizeof(Vec3), 1, rev_file);

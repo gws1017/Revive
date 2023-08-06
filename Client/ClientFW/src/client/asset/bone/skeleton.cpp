@@ -3,15 +3,11 @@
 
 namespace client_fw 
 {
-	const Mat4& Skeleton::GetBoneTransform()
+	const Mat4& Skeleton::GetTranposeRootTransform()
 	{
-		return m_bone_transform;
-	}
-	const Mat4& Skeleton::GetTranposeBoneTransform()
-	{
-		m_bone_transform_T = m_bone_transform;
-		m_bone_transform_T.Transpose();
-		return m_bone_transform_T;
+		m_root_transform_T = m_root_transform;
+		m_root_transform_T.Transpose();
+		return m_root_transform_T;
 	}
 	const Mat4& Skeleton::ToRootBone(const Mat4& child_mat)
 	{
@@ -19,7 +15,7 @@ namespace client_fw
 			return child_mat;
 		else 
 		{
-			m_parent->ToRootBone(m_to_parent * child_mat);
+			return m_parent->ToRootBone( child_mat * m_transform);
 		}
 	}
 
@@ -29,18 +25,18 @@ namespace client_fw
 			return child_vec;
 		else
 		{
-			m_parent->ToRootBone(vec3::TransformCoord(child_vec, m_to_parent));
+			return m_parent->ToRootBone(vec3::TransformCoord(child_vec, m_transform));
 		}
 	}
 
 	void Skeleton::UpdateSkeletonTree(const Mat4& parent_transform)
 	{
-		m_bone_transform = m_to_parent * parent_transform;
+		m_root_transform = m_transform * parent_transform;
 		
 		if (m_sibling)
 			m_sibling->UpdateSkeletonTree(parent_transform);
 		if (m_child)
-			m_child->UpdateSkeletonTree(m_bone_transform);
+			m_child->UpdateSkeletonTree(m_root_transform);
 	}
 
 	void Skeleton::Update()

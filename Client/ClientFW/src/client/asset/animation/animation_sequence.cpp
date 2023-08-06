@@ -95,7 +95,7 @@ namespace client_fw
 		temp_bone->m_rotation_matrix = R;
 		temp_bone->m_translation_matrix = T;
 
-		temp_bone->SetToParent(transform);
+		temp_bone->SetTransform(transform);
 	}
 	
 	

@@ -14,12 +14,12 @@ namespace client_fw
 
 		std::string m_bone_name;
 
-		//루트 뼈 공간기준 좌표
+		//루트 뼈 공간기준 transform
 		//실제 게임에서의 월드공간은셰이더에서 적용한다
-		Mat4 m_bone_transform = mat4::IDENTITY; 
-		Mat4 m_bone_transform_T;
+		Mat4 m_root_transform = mat4::IDENTITY; 
+		Mat4 m_root_transform_T;
 	public:
-		Mat4 m_to_parent = mat4::IDENTITY; //부모공간으로 이전하는 행렬
+		Mat4 m_transform = mat4::IDENTITY; //현재 뼈 공간에서의 transform
 
 		Mat4 m_scale_matrix;
 		Mat4 m_translation_matrix;
@@ -35,13 +35,15 @@ namespace client_fw
 		const Mat4& ToRootBone(const Mat4& child_vec);
 		const Vec3& Skeleton::ToRootBone(const Vec3& child_vec);
 
+		void SetRootTransform(const Mat4& transform) { m_root_transform = transform; }
+
 	public:
 		void Update();
 
 		const SPtr<Skeleton> FindBone(const std::string& m_bone_name);
 
-		const Mat4& GetBoneTransform(); // m_bone_transform
-		const Mat4& GetTranposeBoneTransform(); //필요할 때마다 Transpose해서 전달
+		const Mat4& GetRootTransform() { return m_root_transform; };
+		const Mat4& GetTranposeRootTransform(); //필요할 때마다 Transpose해서 전달
 
 		const Vec3& GetBoneScale() { return ToRootBone(m_scale); }
 		const Vec3& GetBoneTranslation() { return ToRootBone(m_translation); }
@@ -55,8 +57,7 @@ namespace client_fw
 		const std::string& GetBoneName() { return m_bone_name; }
 
 		void SetBoneName(const std::string& name) { m_bone_name = name; }
-		void SetToParent(const Mat4& to_parent) { m_to_parent = to_parent; }
-		void SetBoneTransform(const Mat4& transform) { m_bone_transform = transform; }
+		void SetTransform(const Mat4& transform) { m_transform = transform; }
 		void SetChild(SPtr<Skeleton>& bone);
 		
 	};
