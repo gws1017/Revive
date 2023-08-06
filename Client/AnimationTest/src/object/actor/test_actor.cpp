@@ -27,7 +27,7 @@ namespace anim_test
 	void TestActor::Update(float delta_time)
 	{
 		if(m_is_eqquiped)
-			m_static_mesh_component->SetLocalPosition(m_skeletal_mesh_component->GetBonePosition(m_socket_name) + m_weapon_offset);
+			m_static_mesh_component->SetLocalPosition(m_skeletal_mesh_component->GetBoneWorldPosition(m_socket_name) + m_weapon_offset);
 	}
 
 	void TestActor::Shutdown()

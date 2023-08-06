@@ -3,11 +3,13 @@
 #include "client/asset/animation/animation_sequence.h"
 #include "client/asset/bone/skeleton.h"
 #include "client/asset/core/asset_manager.h"
+#include "client/asset/mesh/mesh_loader.h"
+
 
 namespace client_fw
 {
-	
-	SPtr<AnimationSequence> AnimationLoader::LoadAnimation(FILE* file, const SPtr<Skeleton>& skeleton) const
+	using namespace load_help;
+	SPtr<AnimationSequence> AnimationLoader::LoadAnimation(std::ifstream& file, const SPtr<Skeleton>& skeleton) const
 	{
 		SPtr<AnimationSequence> anim_seq = CreateSPtr<AnimationSequence>();
 		std::string prefix;
@@ -23,40 +25,39 @@ namespace client_fw
 
 		int temp_int;
 
-		ReadStringFromFile(file, &prefix); //"<AnimationSets>"
-		fread(&temp_int, sizeof(int), 1, file); //animation_sets_count : 0
+		ReadString(file, prefix); //"<AnimationSets>"
+		ReadIntager(file, temp_int);//animation_sets_count : 0
 
-		ReadStringFromFile(file, &prefix); //"<AnimationSet>"
-		fread(&temp_int, sizeof(int), 1, file); //animation_set_count : 1
+		ReadString(file, prefix); //"<AnimationSets>"
+		ReadIntager(file, temp_int); //animation_set_count : 1
 
 		//AnimationSequence Load
-		ReadStringFromFile(file, &(anim_seq->anim_name));
+		ReadString(file, prefix); //"<AnimationSets>"
 
-		fread(&start_time, sizeof(float), 1, file);
-		fread(&end_time, sizeof(float), 1, file);
+		ReadFloat(file, start_time);
+		ReadFloat(file, end_time);
 
-
-		ReadStringFromFile(file, &prefix); //"<AnimationLayers>"
-		fread(&temp_int, sizeof(int), 1, file); //animation_layers_count : 1
-		ReadStringFromFile(file, &prefix); //"<AnimationLayer>"
-		fread(&temp_int, sizeof(int), 1, file); //animation_layer_count : 0
+		ReadString(file, prefix); //"<AnimationSets>"
+		ReadIntager(file, temp_int); //animation_layers_count : 1
+		ReadString(file, prefix); //"<AnimationSets>"
+		ReadIntager(file, temp_int); //animation_layer_count : 0
 
 		//AnimationTrack
-		fread(&animated_bone_count, sizeof(int), 1, file);
-		fread(&weight, sizeof(float), 1, file);
+		ReadIntager(file, animated_bone_count);
+		ReadFloat(file, weight);
 
 		SPtr<AnimationTrack> anim_track = CreateSPtr<AnimationTrack>();
 
 
 		for (int i = 0; i < animated_bone_count; ++i)
 		{
-			ReadStringFromFile(file, &prefix);
+			ReadString(file, prefix); //"<AnimationSets>"
 			switch (HashCode(prefix.c_str()))
 			{
 			case HashCode("<AnimationCurve>:"):
-				fread(&temp_int, sizeof(int), 1, file); //curve_node_index == i
+				ReadIntager(file, temp_int); //curve_node_index == i
 
-				ReadStringFromFile(file, &prefix); //bone_name
+				ReadString(file, prefix); //"<AnimationSets>"
 				auto& temp_skel = skeleton->FindBone(prefix);
 				if (temp_skel)cache_skeleton.push_back(temp_skel);
 				else
@@ -65,7 +66,7 @@ namespace client_fw
 				}
 				//AnimationCurve
 				curve.resize(9);
-				while (ReadStringFromFile(file, &prefix))
+				while (ReadString(file, prefix))
 				{
 					if (prefix.compare("</AnimationCurve>") == 0) break;
 
@@ -113,69 +114,55 @@ namespace client_fw
 		//end
 		anim_seq->SetAnimationTrack(anim_track);
 		anim_seq->SetDefaultTime(start_time, end_time);
-		ReadStringFromFile(file, &prefix); //"</AnimationLayer>"
-		ReadStringFromFile(file, &prefix); //"</AnimationLayers>"
-		ReadStringFromFile(file, &prefix); //"<AnimationSet>"
-		ReadStringFromFile(file, &prefix); //"<AnimationSets>"
+		ReadString(file, prefix); //"</AnimationLayer>"
+		ReadString(file, prefix); //"</AnimationLayers>"
+		ReadString(file, prefix); //"<AnimationSet>"
+		ReadString(file, prefix); //"<AnimationSets>"
 
 		return anim_seq;
 	}
 
-	FILE* AnimationLoader::GetFilePointerForAnimation(const std::string& path, const std::string& extension) const
+	std::ifstream AnimationLoader::GetFilePointerForAnimation(const std::string& path, const std::string& extension) const
 	{
-		FILE* rev_file = NULL;
-		fopen_s(&rev_file, path.c_str(), "rb");
-		if (rev_file == NULL)
+		std::ifstream file(path, std::ios::binary);
+
+		if (file.is_open() == false)
 		{
 			LOG_ERROR("Could not find path : [{0}]", path);
-			return nullptr;
+			return file;
 		}
 
-		
-		std::string prefix;
-
 		//정보를 모으는 벡터들은 재귀함수 바깥쪽에 있어야 한다
-
-		while (ReadStringFromFile(rev_file, &prefix))
+		std::string prefix;
+		while (ReadString(file, prefix))
 		{
-			if (prefix.compare("</Animation>") == 0) break;
+			if (prefix == "</Animation>") break;
 
 			switch (HashCode(prefix.c_str()))
 			{
 			case HashCode("<Hierarchy>"):
 
-				while (ReadStringFromFile(rev_file, &prefix))
+				while (ReadString(file, prefix))
 				{
-					if (prefix.compare("<Frame>:") == 0)
+					if (prefix == "<Frame>:")
 					{
-						ReadFrameHierArchy(rev_file);
+						ReadFrameHierArchy(file);
 					}
-					else if ("</Hierarchy>")
+					else if (prefix == "</Hierarchy>")
 						break;
 				}
 				break;
+
 			case HashCode("<Animation>"):
-				return rev_file;
-				break;
+				return file;
 			default:
 				break;
 			}
 		}
-
-		return nullptr;
+		return file;
 	}
 
-	int AnimationLoader::ReadStringFromFile(FILE* file, std::string* word) const
-	{
-		word->clear();
-		int length = 0;
-		char buffer[64] = { "\0" };
-		fread(&length, sizeof(int), 1, file);
-		fread(&buffer, sizeof(char), length, file);
-		*word = buffer;
-		return length;
-	}
-	void AnimationLoader::ReadFrameHierArchy(FILE* rev_file) const
+	void AnimationLoader::ReadFrameHierArchy(std::ifstream& file) const
 	{
 		std::string prefix;
 
@@ -184,52 +171,50 @@ namespace client_fw
 		Mat4 temp_mat4;
 		Vec3 temp_vec3;
 
-		fread(&temp_uint, sizeof(UINT), 1, rev_file);
-		ReadStringFromFile(rev_file, &temp_string); //bone name read
+		ReadUINT(file, temp_uint);
+		ReadString(file, temp_string); //bone name read
 
-		while (ReadStringFromFile(rev_file, &prefix))
+		while (ReadString(file, prefix))
 		{
 			switch (HashCode(prefix.c_str()))
 			{
 			case HashCode("<Transform>:"):
-				fread(&temp_mat4, sizeof(Mat4), 1, rev_file);
+				ReadMat4(file, temp_mat4);
 				for (UINT i = 0; i < 3; ++i)
-					fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
+					ReadVec3(file, temp_vec3);
 				break;
 			case HashCode("<Mesh>:"):
-				ReadMesh(rev_file);
+				ReadMesh(file);
 				break;
 			case HashCode("<SkinDeformations>:"):
-				ReadSkinDeformations(rev_file);
-
-				ReadStringFromFile(rev_file, &prefix);
-
-				if (prefix.compare("<Mesh>:") == 0)
-					ReadMesh(rev_file);
+				ReadSkinDeformations(file);
+				ReadString(file, prefix);
+				if (prefix == ("<Mesh>:"))
+					ReadMesh(file);
 				break;
 			case HashCode("<Materials>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-				while (ReadStringFromFile(rev_file, &prefix))
+				ReadUINT(file, temp_uint);
+				while (ReadString(file, prefix))
 				{
-					if (prefix.compare("</Materials>") == 0) break;
+					if (prefix == ("</Materials>")) break;
 					switch (HashCode(prefix.c_str()))
 					{
 					case HashCode("<Material>:"):
-						fread(&temp_uint, sizeof(int), 1, rev_file);
+						ReadUINT(file, temp_uint);
 						break;
 					case HashCode("<AlbedoMap>:"):
-						ReadStringFromFile(rev_file, &temp_string); //W_HEAD_00_violet +확장자 붙힌채로 읽기
+						ReadString(file, prefix); //W_HEAD_00_violet +확장자 붙힌채로 읽기
 						break;
 					}
 				}
 				break;
 			case HashCode("<Children>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
+				ReadUINT(file, temp_uint);
 				for (UINT i = 0; i < temp_uint; ++i)
 				{
-					ReadStringFromFile(rev_file, &prefix);
-					if (prefix.compare("<Frame>:") == 0)
-						ReadFrameHierArchy(rev_file);
+					ReadString(file, prefix);
+					if (prefix == ("<Frame>:"))
+						ReadFrameHierArchy(file);
 				}
 				break;
 			case HashCode("</Frame>"):
@@ -237,7 +222,7 @@ namespace client_fw
 			}
 		}
 	}
-	void AnimationLoader::ReadMesh(FILE* rev_file) const
+	void AnimationLoader::ReadMesh(std::ifstream& file) const
 	{
 		std::string prefix;
 
@@ -245,91 +230,84 @@ namespace client_fw
 		Vec2 temp_vec2;
 		UINT temp_uint;
 
-		ReadStringFromFile(rev_file, &prefix);
+		ReadString(file, prefix);
 
-		while (ReadStringFromFile(rev_file, &prefix))
+		while (ReadString(file, prefix))
 		{
 			switch (HashCode(prefix.c_str()))
 			{
 			case HashCode("<Bounds>:"):
-				fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
-				fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
+				ReadVec3(file, temp_vec3);
+				ReadVec3(file, temp_vec3);
 				break;
 			case HashCode("<ControlPoints>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-
+				ReadUINT(file, temp_uint);
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
+						ReadVec3(file, temp_vec3);
 				break;
 
 			case HashCode("<TextureCoords0>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-
+				ReadUINT(file, temp_uint);
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_vec2, sizeof(Vec2), 1, rev_file);
+						ReadVec2(file, temp_vec2);
 
 				break;
 
 			case HashCode("<TextureCoords1>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-
+				ReadUINT(file, temp_uint);
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_vec2, sizeof(Vec2), 1, rev_file);
+						ReadVec2(file, temp_vec2);
 				break;
 
 			case HashCode("<Normals>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-
+				ReadUINT(file, temp_uint);
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
+						ReadVec3(file, temp_vec3);
 				break;
 
 			case HashCode("<Tangents>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-
+				ReadUINT(file, temp_uint);
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
+						ReadVec3(file, temp_vec3);
 				break;
 
 			case HashCode("<BiTangents>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-				
+				ReadUINT(file, temp_uint);
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
+						ReadVec3(file, temp_vec3);
 				break;
 
 			case HashCode("<Polygons>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-				while (ReadStringFromFile(rev_file, &prefix))
+				ReadUINT(file, temp_uint);
+				while (ReadString(file, prefix))
 				{
 					if (prefix.compare("<SubIndices>:") == 0)
 					{
-						fread(&temp_uint, sizeof(UINT), 1, rev_file);
-						fread(&temp_uint, sizeof(UINT), 1, rev_file); 
-						while (ReadStringFromFile(rev_file, &prefix))
+						ReadUINT(file, temp_uint);
+						ReadUINT(file, temp_uint);
+						while (ReadString(file, prefix))
 						{
 
-							if (prefix.compare("</Polygons>") == 0) break;
-							else if (prefix.compare("<SubIndex>:") == 0)
+							if (prefix == ("</Polygons>")) break;
+							else if (prefix == ("<SubIndex>:"))
 							{
-								fread(&temp_uint, sizeof(UINT), 1, rev_file);
-								fread(&temp_uint, sizeof(UINT), 1, rev_file);
+								ReadUINT(file, temp_uint);
+								ReadUINT(file, temp_uint);
 								UINT count = temp_uint;
 								if (count > 0)
 									for (UINT i = 0; i < count; i++)
-										fread(&temp_uint, sizeof(UINT), 1, rev_file);
-									
+										ReadUINT(file, temp_uint);
 							}
 						}
 
 					}
-					if (prefix.compare("</Polygons>") == 0)break;
+					if (prefix == ("</Polygons>")) break;
 
 				}
 				break;
@@ -339,7 +317,7 @@ namespace client_fw
 			}
 		}
 	}
-	void AnimationLoader::ReadSkinDeformations(FILE* rev_file) const
+	void AnimationLoader::ReadSkinDeformations(std::ifstream& file) const
 	{
 		std::string prefix;
 
@@ -349,46 +327,45 @@ namespace client_fw
 		IVec4 temp_ivec4;
 		UINT temp_uint;
 
-		while (ReadStringFromFile(rev_file, &prefix))
+		while (ReadString(file, prefix))
 		{
 
-			if (prefix.compare("</SkinDeformations>") == 0) break;
+			if (prefix == ("</SkinDeformations>")) break;
 
 			switch (HashCode(prefix.c_str()))
 			{
 			case HashCode("<BonesPerVertex>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
+				ReadUINT(file, temp_uint);
 				break;
 			case HashCode("<Bounds>:"):
-				fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
-				fread(&temp_vec3, sizeof(Vec3), 1, rev_file);
+				ReadVec3(file, temp_vec3);
+				ReadVec3(file, temp_vec3);
 				break;
 			case HashCode("<BoneNames>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
-
+				ReadUINT(file, temp_uint);
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						ReadStringFromFile(rev_file, &prefix);
+						ReadString(file, prefix);
 				break;
 			case HashCode("<BoneOffsets>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
+				ReadUINT(file, temp_uint);
 
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_mat4, sizeof(Mat4), 1, rev_file);
+						ReadMat4(file, temp_mat4);
 				break;
 			case HashCode("<BoneIndices>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
+				ReadUINT(file, temp_uint);
 
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_ivec4, sizeof(IVec4), 1, rev_file);
+						ReadIVec4(file, temp_ivec4);
 				break;
 			case HashCode("<BoneWeights>:"):
-				fread(&temp_uint, sizeof(UINT), 1, rev_file);
+				ReadUINT(file, temp_uint);
 				if (temp_uint > 0)
 					for (UINT i = 0; i < temp_uint; ++i)
-						fread(&temp_vec4, sizeof(Vec4), 1, rev_file);
+						ReadVec4(file, temp_vec4);
 				break;
 			default:
 				break;
@@ -397,20 +374,20 @@ namespace client_fw
 
 	}
 
-	SPtr<AnimationCurve> AnimationLoader::LoadKeyValue(FILE* file) const
+	SPtr<AnimationCurve> AnimationLoader::LoadKeyValue(std::ifstream& file) const
 	{
 		SPtr<AnimationCurve> anim_curve = CreateSPtr<AnimationCurve>();
 
 		int temp_int;
 
-		fread(&temp_int, sizeof(int), 1, file); //key_frame_count
+		ReadIntager(file,temp_int); //key_frame_count
 		std::vector<KeyFrame> key_frames(temp_int);
 
 
 		for (auto& key_frame : key_frames)
-			fread(&(key_frame.key_time), sizeof(float), 1, file);
+			ReadFloat(file, key_frame.key_time);
 		for (auto& key_frame : key_frames)
-			fread(&(key_frame.key_value), sizeof(float), 1, file);
+			ReadFloat(file, key_frame.key_value);
 
 		anim_curve->m_key_frames = key_frames;
 

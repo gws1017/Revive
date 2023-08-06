@@ -174,7 +174,7 @@ namespace client_fw
 		return (asset == nullptr) ? nullptr : std::static_pointer_cast<ExternalCubeMapTexture>(asset);
 	}
 
-	SPtr<AnimationSequence> AssetManager::LoadAnimation(FILE* file, const SPtr<Skeleton>& skeleton, const std::string& path)
+	SPtr<AnimationSequence> AssetManager::LoadAnimation(std::ifstream& file, const SPtr<Skeleton>& skeleton, const std::string& path)
 	{
 		auto asset = LoadAsset(eAssetType::kAnimation, path);
 		if (asset == nullptr)
@@ -199,7 +199,7 @@ namespace client_fw
 			std::string stem = file_help::GetStemFromPath(path);
 			std::string extension = file_help::GetExtentionFromPath(path);
 			
-			FILE* animation_file = m_animation_loader->GetFilePointerForAnimation(path, extension);
+			std::ifstream animation_file = m_animation_loader->GetFilePointerForAnimation(path, extension);
 			asset = m_animation_loader->LoadAnimation(animation_file,skeleton);
 
 			if (asset != nullptr)

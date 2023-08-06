@@ -29,7 +29,7 @@ namespace client_fw
 		static SPtr<ExternalTexture> LoadTexture(const std::string& path);
 		static SPtr<ExternalCubeMapTexture> LoadCubeMapTexture(const std::string& path);
 
-		static SPtr<AnimationSequence> LoadAnimation(FILE* file, const SPtr<Skeleton>& skeleton, const std::string& path);
+		static SPtr<AnimationSequence> LoadAnimation(std::ifstream& file, const SPtr<Skeleton>& skeleton, const std::string& path);
 		static SPtr<AnimationSequence> LoadAnimation(const std::string& path, const SPtr<Skeleton>& skeleton);
 
 	private:

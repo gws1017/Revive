@@ -36,7 +36,7 @@ namespace client_fw
 		return s_asset_manager->LoadCubeMapTexture(path);
 	}
 
-	SPtr<AnimationSequence> AssetStore::LoadAnimation(FILE* file, const SPtr<Skeleton>& skeleton, const std::string& path)
+	SPtr<AnimationSequence> AssetStore::LoadAnimation(std::ifstream& file, const SPtr<Skeleton>& skeleton, const std::string& path)
 	{
 		return s_asset_manager->LoadAnimation(file, skeleton, path);
 	}

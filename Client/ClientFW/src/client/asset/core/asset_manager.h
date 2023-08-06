@@ -48,12 +48,15 @@ namespace client_fw
 		bool m_is_level_cache;
 		std::map<eAssetType, AssetCache> m_asset_caches;
 
+		std::unordered_map<std::string, SPtr<std::streampos>> m_file_caches;
+
 	private:
 		UINT GetNumOfAsset(eAssetType type) const;
 		SPtr<Asset> LoadAsset(eAssetType type, const std::string& path) const;
 		void SaveAsset(eAssetType type, const std::string& name, const std::string& path, 
 			const std::string& extension, const SPtr<Asset>& asset);
 
+		
 	public:
 		UINT GetNumOfMesh() const;
 		SPtr<Mesh> LoadMesh(const std::string& path);
@@ -63,8 +66,9 @@ namespace client_fw
 		SPtr<ExternalTexture> LoadTexture(const std::string& path);
 		SPtr<ExternalCubeMapTexture> LoadCubeMapTexture(const std::string& path);
 
-		SPtr<AnimationSequence> LoadAnimation(FILE* file,const SPtr<Skeleton>&skeleton, const std::string& path);
+		SPtr<AnimationSequence> LoadAnimation(std::ifstream& file,const SPtr<Skeleton>&skeleton, const std::string& path);
 		SPtr<AnimationSequence> LoadAnimation(const std::string& path,const SPtr<Skeleton>&);
+	
 	};
 
 	namespace file_help

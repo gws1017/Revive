@@ -40,21 +40,29 @@ namespace client_fw
 		//계층구조 형태의 파일(rev파일)을 읽음
 
 		//true반환시 메시정보를 전부 읽었고 Animation 정보를 읽을 준비가 됬다는 것을 의미함
-		bool LoadFrameHierArchy(FILE* rev_file, SPtr<Skeleton>& skeleton, std::vector<MeshData>& mesh_data, const std::string& path) const;
+		bool LoadFrameHierArchy(std::ifstream& file, SPtr<Skeleton>& skeleton, std::vector<MeshData>& mesh_data, const std::string& path) const;
 
-		void LoadMeshFromRevFile(FILE* rev_file, std::vector<MeshData>& mesh_data) const;
-		void LoadSkinDeformations(FILE* rev_file, SPtr<BoneData>& bone_data) const;
+		void LoadMeshFromRevFile(std::ifstream& file, std::vector<MeshData>& mesh_data) const;
+		void LoadSkinDeformations(std::ifstream& file, SPtr<BoneData>& bone_data) const;
 
-		//현재 사용하지 않음 추후 수정해서 재사용 가능성 있음
-		//void AddRevMaterial(std::map<std::string, SPtr<Material>>&materials, const std::string& mtl_name, const std::string& parent_path) const;
-
-		void AddMesh() const { static_cast<UINT>(m_mesh_count)++; }
-		int ReadStringFromFile(FILE* file, std::string* word) const;
 		void InitializeMeshData(std::vector<MeshData>& mesh_data) const;
 		//원래는 Frame이나 Frame == Bone 취급한다
 		//fbx에서는 frame != Bone
 	};
 	
+	namespace load_help
+	{
+		int ReadString(std::ifstream& file, std::string& str);
+		int ReadString(std::ifstream& file, int length, std::string& str);
+		void ReadUINT(std::ifstream& file, UINT& value);
+		void ReadIntager(std::ifstream& file, int& value);
+		void ReadFloat(std::ifstream& file, float& value);
+		void ReadMat4(std::ifstream& file, Mat4& mat4); 
+		void ReadVec2(std::ifstream& file, Vec2& vec2); 
+		void ReadVec3(std::ifstream& file, Vec3& vec3);
+		void ReadVec4(std::ifstream& file, Vec4& vec4);
+		void ReadIVec4(std::ifstream& file, IVec4& ivec4);
+	}
 
 }
 
