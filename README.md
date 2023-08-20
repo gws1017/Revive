@@ -30,6 +30,8 @@
 * IOCP 서버
 
 ***
+### 클라이언트 개발 일지 (박해성)
+* 주차별 개발 내용을 보고 싶으시면 [여기](https://github.com/gws1017/Revive/wiki) 를 눌러주세요
 
 ### 인게임 이미지
 ![image](https://user-images.githubusercontent.com/34498116/183625957-f3d069c6-801e-4d65-beab-49cb1667e24e.png)
