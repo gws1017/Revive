@@ -54,7 +54,7 @@ namespace client_fw
 		void SetOwner(const SPtr<SkeletalMeshComponent>& owner) { m_owner = owner; }
 		SPtr<SkeletalMeshComponent> GetOwner() const { return m_owner.lock(); }
 
-		const Mat4& FindTransformToBoneName(const std::string& socket_name);
+		const Mat4& FindTransformToBoneName(const std::string& bone_name);
 
 	private:
 		std::string m_animation_name;

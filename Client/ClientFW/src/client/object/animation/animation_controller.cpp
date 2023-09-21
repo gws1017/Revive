@@ -130,16 +130,16 @@ namespace client_fw
             LOG_WARN("{0} is already existed Notify Name!");
     }
 
-    const Mat4& AnimationController::FindTransformToBoneName(const std::string& socket_name)
+    const Mat4& AnimationController::FindTransformToBoneName(const std::string& bone_name)
     {
         if (m_cahce_skeleton.empty() == false)
         {
-            if (m_bone_socket_info.find(socket_name) != m_bone_socket_info.cend())
+            if (m_bone_socket_info.find(bone_name) != m_bone_socket_info.cend())
             {
-                auto index = m_bone_socket_info.at(socket_name);
+                auto index = m_bone_socket_info.at(bone_name);
                     return m_bone_transform_resource[index];
             }
-            LOG_WARN("Does not exist socket name {0}", socket_name);
+            LOG_WARN("Does not exist socket name {0}", bone_name);
         }
         
         return mat4::IDENTITY;
